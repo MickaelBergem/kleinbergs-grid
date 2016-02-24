@@ -12,7 +12,7 @@ import numpy as np
 # Grid size
 N = 100
 # Kleinberg parameter
-r = 2.
+# r = 2.
 
 # Shortcuts grid, defaults to -1
 shortcuts = np.empty((N, N))
@@ -20,16 +20,16 @@ for i in range(N):
     for j in range(N):
         shortcuts[i, j] = -1
 
-def get_shortcut(x, y):
+def get_shortcut(x, y, r, global_distance_grid):
     """ Returns the shortcut for node (x, y) """
     s = shortcuts[x, y]
     if s == -1:
-        return new_shortcut(x, y)
+        return new_shortcut(x, y, r, global_distance_grid)
     # Return the existing shortcut
     return s
 
 
-def new_shortcut(x, y):
+def new_shortcut(x, y, r, global_distance_grid):
     """
     Generates a new shortcut for the given node A.
 
@@ -68,6 +68,7 @@ def build_distance_grid(r):
     We assume that the reference node is at (N, N). Thanks to symmetry we can
     build the full distance grid, centered on the reference node.
     """
+    global_distance_grid = np.zeros((2*N-1, 2*N-1))
     print("r:", r)
     for i in range(N):
         for j in range(1 if i==0 else 0, N):
@@ -76,20 +77,21 @@ def build_distance_grid(r):
             global_distance_grid[N-i-1, N+j-1] = d
             global_distance_grid[N-i-1, N-j-1] = d
             global_distance_grid[N+i-1, N-j-1] = d
+    return global_distance_grid
 
 # Distance grid for future use
-gridfilename = 'global_distance_grid{}.npy'.format(N)
-try:
-    global_distance_grid = np.load(gridfilename)
-    if global_distance_grid[N-1,N-1] != 0:
-        print("Invalid global distance grid file, computing it again!")
-        raise IOError()
-    print("Loaded the global distance grid from file.")
-except IOError:
-    global_distance_grid = np.zeros((2*N-1, 2*N-1))
-    build_distance_grid(r)
-    print("Saving the grid in {}".format(gridfilename))
-    np.save(gridfilename, global_distance_grid)
+# gridfilename = 'global_distance_grid{}.npy'.format(N)
+# try:
+#     global_distance_grid = np.load(gridfilename)
+#     if global_distance_grid[N-1,N-1] != 0:
+#         print("Invalid global distance grid file, computing it again!")
+#         raise IOError()
+#     print("Loaded the global distance grid from file.")
+# except IOError:
+#     global_distance_grid = np.zeros((2*N-1, 2*N-1))
+#     build_distance_grid(r)
+#     print("Saving the grid in {}".format(gridfilename))
+#     np.save(gridfilename, global_distance_grid)
 
 
 def random_dir(buffer=1000):
@@ -98,7 +100,7 @@ def random_dir(buffer=1000):
         for i in range(buffer):
             yield rands[i]
 
-def routing(_):
+def routing(params):
     """ Applies the routing algorithm and returns the number of steps """
     start_x, start_y, dest_x, dest_y = np.random.randint(N, size=(4))
     # print("Starting node: {}:{}".format(start_x, start_y))
@@ -107,6 +109,8 @@ def routing(_):
     steps = 0
     current_x = start_x
     current_y = start_y
+
+    r, global_distance_grid = params
 
     # Compute maxsteps (if no shortcut)
     maxsteps = distance(start_x, start_y, dest_x, dest_y)
@@ -118,7 +122,7 @@ def routing(_):
         # print("Step #{}: {}:{}, distance={}".format(steps, current_x, current_y, current_distance))
 
         # Grab shortcut
-        shortcut = get_shortcut(current_x, current_y)
+        shortcut = get_shortcut(current_x, current_y, r, global_distance_grid)
         sx = shortcut // N
         sy = shortcut % N
         s_distance = distance(sx, sy, dest_x, dest_y)
@@ -129,9 +133,9 @@ def routing(_):
             current_y = sy
             continue
 
+            # Move along y
         # It is better (or equal) to use the neighbors
         if current_x == dest_x:
-            # Move along y
             direction = 1
         elif current_y == dest_y:
             # Move along x
@@ -155,10 +159,10 @@ def init_random():
 @chrono
 def run_routing(r, Ntries):
     """ Run Ntries routing for the given value of r """
-    build_distance_grid(r)
+    global_distance_grid = build_distance_grid(r)
     print("Running {} routings...".format(Ntries))
 
-    steps = pool.map(routing, range(Ntries))
+    steps = pool.map(routing, [(r, global_distance_grid) for _ in range(Ntries)])
     meanstep, meanmaxstep = np.sum(steps, axis=0)/Ntries
     print("Routed using {:.2f} steps on average".format(meanstep))
     return meanstep, meanmaxstep
@@ -167,7 +171,7 @@ def run_routing(r, Ntries):
 if __name__ == '__main__':
 
     Ntries = 10000
-    pool = Pool(8)
+    pool = Pool(4)
 
     r_list = list(np.arange(.1, 3, .1))
     meansteps = []

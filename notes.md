@@ -41,9 +41,12 @@ This gives the following (surprising) graph for N=100 and Ntries=10000:
 [!graph1](graph1.png)
 
 Crap, I did not write my code to use different values of r in the first place,
-and now I am always using the same r!
+and now I am always using the same r and global_distance_grid matrix!
 
 ## MemoryError
+
+Anyway, I need to code another way of getting the shortcut, because of the
+following issue.
 
 Quickly enough I notice that the memory consumption is quite huge and that I
 need to reduce the problem. I chose to come back to my initial idea, that I
