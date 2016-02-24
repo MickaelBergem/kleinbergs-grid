@@ -22,3 +22,5 @@ and randomly pick an element using this distribution.
 
 Building the initial distance grid takes 3'40" on a single core, for N = 10000
 (time complexity = O(N²)), and the grid is cached on disk.
+
+This state is referenced by the git tag `basic-shortcut-finder`.
