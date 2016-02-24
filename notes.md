@@ -34,11 +34,13 @@ If both neighbors allow to progress, we uniformly pick one.
 
 I used parallelization to use all my cores.
 
+For r=2, N=100 and Ntries=10000 I get an average of **23 steps**.
+
 I then call `run_routing` for different values of `r`.
 
 This gives the following (surprising) graph for N=100 and Ntries=10000:
 
-[!graph1](graph1.png)
+![graph1](graph1.png)
 
 Crap, I did not write my code to use different values of r in the first place,
 and now I am always using the same r and global_distance_grid matrix!
