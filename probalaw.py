@@ -10,23 +10,14 @@ import matplotlib.pyplot as plt
 import numpy as np
 import time
 
-# Grid size
-N = 100
+r = 10.
 
 Ntries = 10000
 
-# Shortcuts grid, defaults to -1
-# shortcuts = np.zeros((N, N)) - 1
-
-# Useful static data
-
-# Number of destination nodes at distance `d`
-nb_nodes = [4*d for d in range(1, N)]
-
-r_list = list(np.arange(.1, 3, .1))
+N_list = list(np.arange(10, 800, 100))
 
 
-def get_shortcut(x, y, random_distance, shortcuts):
+def get_shortcut(x, y, random_distance, shortcuts, N, nb_nodes):
     """
     Generates a new shortcut for the given node A.
 
@@ -70,11 +61,14 @@ def distance(ax, ay, bx, by):
     return abs(ax-bx) + abs(ay - by)
 
 
-def routing(r, shortcuts):
+def routing(N, shortcuts):
     """ Applies the routing algorithm and returns the number of steps """
     start_x, start_y, dest_x, dest_y = np.random.randint(N, size=(4))
     # print("Starting node: {}:{}".format(start_x, start_y))
     # print("Destination node: {}:{}".format(dest_x, dest_y))
+
+    nb_nodes = [4*d for d in range(1, N)]
+
 
     steps = 0
     current_x = start_x
@@ -99,7 +93,7 @@ def routing(r, shortcuts):
         # print("Step #{}: {}:{}, distance={}".format(steps, current_x, current_y, current_distance))
 
         # Grab shortcut
-        shortcut = get_shortcut(current_x, current_y, random_distance, shortcuts)
+        shortcut = get_shortcut(current_x, current_y, random_distance, shortcuts, N, nb_nodes)
         sx = shortcut // N
         sy = shortcut % N
         s_distance = distance(sx, sy, dest_x, dest_y)
@@ -134,43 +128,37 @@ def routing(r, shortcuts):
 def run_routing(params):
     """ Run Ntries routing for the given value of r """
 
-    r, Ntries = params
+    r, N = params
 
-    print("[{:.2f}] Running {} routings...".format(r, Ntries))
+    print("[{}] Running {} routings...".format(N, Ntries))
 
     shortcuts = np.zeros((N, N)) - 1
 
     steps = []
     for _ in range(Ntries):
-        steps.append(routing(r, shortcuts))
+        steps.append(routing(N, shortcuts))
 
     sh_computed = (shortcuts!=-1).sum()
-    print("[{:.2f}] {} shortcuts computed ({:.1f}%)".format(r, sh_computed, 100.*sh_computed/N/N))
+    print("[{}] {} shortcuts computed ({:.1f}%)".format(N, sh_computed, 100.*sh_computed/N/N))
 
     meanstep, meanmaxstep = np.sum(steps, axis=0)/Ntries
 
-    print("[{:.2f}] Routed using {:.2f} steps on average".format(r, meanstep))
+    print("[{}] Routed using {:.2f} steps on average".format(N, meanstep))
 
     return meanstep
 
 
 if __name__ == '__main__':
 
-    print("Grid size: ", N)
+    print("Parameter r: ", r)
 
     meansteps = []
     meanmaxsteps = []
 
-    # Check the code out of multiprocessing
-    # routing(2.0)
-
     pool = Pool(4)
 
-    meansteps = pool.map(run_routing, [(r, Ntries) for r in r_list])
+    meansteps = pool.map(run_routing, [(r, N) for N in N_list])
 
-    np.save('graph_meansteps_N{}_Ntries{}.npy'.format(N, Ntries), meansteps)
-
-    plt.plot(r_list, meansteps, label="Mean steps")
-    # plt.plot(r_list, meanmaxsteps, label="Max steps (if no shortcuts)")
+    plt.plot(N_list, meansteps, label="Mean steps")
     plt.legend()
     plt.show()

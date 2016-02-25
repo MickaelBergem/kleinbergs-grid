@@ -45,7 +45,7 @@ This gives the following (surprising) graph for N=100 and Ntries=10000:
 Crap, I did not write my code to use different values of r in the first place,
 and now I am always using the same r and global_distance_grid matrix!
 
-## MemoryError
+## MemoryError: time for a new shortcut generation method
 
 Anyway, I need to code another way of getting the shortcut, because of the
 following issue.
@@ -63,3 +63,41 @@ bit more complex to implement):
 By doing so, we remove the solutions out of the grid from the potential
 destination nodes, which is equivalent to removing them from the initial
 distribution since we try again.
+
+## Even more advanced features
+
+After a large number of reworking, error fixing (I was reusing the same
+`shortcuts` map across iterations with different n, what an idiot), data caching
+and feature improvements, I was able to produce the following graphs:
+
+With **N=100**, Ntries=10000 and different values of r (took 8'22" on my
+laptop):
+
+![graph2](graph2-N100.png)
+
+We clearly see that the number of steps is minimum when r is less than 1.5, with
+a **mean step number of 26.0 for r=2.0**.
+
+For r > 2, the mean step number is increasing: the routing time is long for r>2.
+**We can thus confirm this part of the Kleinberg theorem**. However, the routing
+time doesn't appear to be larger for r<2, for this value of N.
+
+# Probability laws
+
+I then chose to iterate on the values of **n** instead of **r**, for r=2.0 and
+for r=3.0. The results here are not very precise but can give some insight on
+the corresponding laws.
+
+For **r=2.0**, the routing time is supposed to be in O(log²(n)).
+
+![graph-r2-250](graph-r2-250.png)
+
+The graph is concave, and may be assimilated to a square logarithmic law.
+
+***
+
+For **r=3.0**, the routing time is supposed to be in O(n^a) for a>0.
+
+![graph-r3-600](graph-r3-600.png)
+
+Here the graph can be associated with such a law, for a **a** near 1.
