@@ -78,6 +78,10 @@ laptop):
 We clearly see that the number of steps is minimum when r is less than 1.5, with
 a **mean step number of 26.0 for r=2.0**.
 
+For **N=250**, the same configuration gives a mean step number of **41.3** at r=2:
+
+![graph3](graph-routing-250.png)
+
 For r > 2, the mean step number is increasing: the routing time is long for r>2.
 **We can thus confirm this part of the Kleinberg theorem**. However, the routing
 time doesn't appear to be larger for r<2, for this value of N.
@@ -101,3 +105,15 @@ For **r=3.0**, the routing time is supposed to be in O(n^a) for a>0.
 ![graph-r3-600](graph-r3-600.png)
 
 Here the graph can be associated with such a law, for a **a** near 1.
+
+I did not do any regression or CPU-intensive computing to verify and approximate
+the constant, by lack of time.
+
+## Conclusion
+
+We were able to verify Kleinberg's theorem for r>2, but the minimum routing time
+seems to lie between 1.0 and 1.5 instead of 2, which is surprising.
+
+We were also able to get a rough verification of the routing time for fixed
+values of r: the experimental laws do not seem to be far from the proposed laws,
+even if we were not able to get a precise (ans satisfying) verification.
